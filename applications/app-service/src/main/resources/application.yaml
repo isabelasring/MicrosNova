@@ -1,0 +1,27 @@
+##Spring Configuration
+server:
+  port: 8080
+spring:
+  application:
+    name: ms-interprete-vision
+  devtools:
+    add-properties: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+vision:
+  environment: ${env:dev}
+  clients:
+    app-info-url: ${APP_INFO_URL:http://ms-appinfo}
+    iris-url: ${IRIS_URL:http://ms-iris}
+    alice-url: ${ALICE_URL:http://ms-alice/process}
+    aiops-agent-url: ${AIOPS_AGENT_URL:http://ms-aiops-agent}
+  aws:
+    region: ${AWS_REGION:us-east-1}
+    sns-topic-arn: ${VISION_SNS_TOPIC_ARN:}
