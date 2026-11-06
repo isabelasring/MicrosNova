@@ -39,6 +39,7 @@ public class VisionSnsAdapter implements VisionSnsGateway {
             throw new IllegalStateException("No fue posible serializar la alerta para SNS", exception);
         }
 
+        System.out.println("[VisionSnsAdapter] Publica en SNS: " + message);
         try {
             snsClient.publish(PublishRequest.builder()
                     .topicArn(topicArn)

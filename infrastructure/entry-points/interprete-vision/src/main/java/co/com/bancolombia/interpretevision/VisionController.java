@@ -20,7 +20,10 @@ public class VisionController {
 
     @PostMapping("/")
     public VisionProcessResult receiveEvent(@Valid @RequestBody VisionWebhookRequest request) {
-        return processVisionAlertUseCase.execute(request.toVisionAlert());
+        System.out.println("[VisionController] Llega el aviso: " + request);
+        VisionProcessResult result = processVisionAlertUseCase.execute(request.toVisionAlerts());
+        System.out.println("[VisionController] Responde: " + result.message());
+        return result;
     }
 
     @GetMapping("/health")

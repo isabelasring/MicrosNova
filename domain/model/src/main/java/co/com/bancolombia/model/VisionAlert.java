@@ -16,4 +16,11 @@ public record VisionAlert(
         String description,
         String summary
 ) {
+    public VisionAlert {
+        System.out.println("[VisionAlert] Queda ordenada. Estado: " + eventStatus
+                + ", aplicación: " + appCode
+                + ", nombre: " + alertName
+                + ", gravedad: " + severity
+                + ", componente: " + componentName);
+    }
 }
