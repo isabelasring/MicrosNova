@@ -1,0 +1,24 @@
+pluginManagement {
+    repositories {
+        maven { url "https://artifactory.apps.bancolombia.com/maven-bancolombia" }
+    }
+}
+
+buildCache {
+    local {
+        directory = new File(rootDir, 'build-cache')
+    }
+}
+
+rootProject.name = 'InterpreteCloudWatch'
+
+include ':app-service'
+include ':model'
+include ':usecase'
+project(':app-service').projectDir = file('./applications/app-service')
+project(':model').projectDir = file('./domain/model')
+project(':usecase').projectDir = file('./domain/usecase')
+include ':interprete-cloudwatch'
+project(':interprete-cloudwatch').projectDir = file('./infrastructure/entry-points/interprete-cloudwatch')
+include ':cloudwatch-adapters'
+project(':cloudwatch-adapters').projectDir = file('./infrastructure/driven-adapters/cloudwatch-adapters')

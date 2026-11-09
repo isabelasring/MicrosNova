@@ -1,0 +1,7 @@
+dependencies {
+    implementation project(':model')
+    implementation 'org.springframework:spring-context'
+    implementation platform('software.amazon.awssdk:bom:2.31.78')
+    implementation 'software.amazon.awssdk:sns'
+    implementation 'tools.jackson.core:jackson-databind'
+}

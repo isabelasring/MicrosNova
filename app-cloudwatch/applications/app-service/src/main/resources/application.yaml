@@ -1,0 +1,24 @@
+##Spring Configuration
+server:
+  port: 8080
+spring:
+  application:
+    name: ms-interprete-cloudwatch
+  jackson:
+    default-property-inclusion: non_null
+  devtools:
+    add-properties: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+cloudwatch:
+  environment: ${env:dev}
+  aws:
+    region: ${AWS_REGION:us-east-1}
+    sns-topic-arn: ${CLOUDWATCH_SNS_TOPIC_ARN:}

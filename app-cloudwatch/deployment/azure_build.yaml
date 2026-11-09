@@ -1,0 +1,102 @@
+name: $(Build.SourceBranchName).$(date:yyyyMMdd)$(rev:.r)
+
+variables:
+  componentName: 'interprete_cloudwatch'
+  projectPath: 'interprete_cloudwatch'
+  artifactory.RepositoryPath: 'build-$(Build.Repository.Name)'
+  artifactory.fullNameComponent: '$(Build.Repository.Name)_$(componentName)'
+
+resources:
+  - repo: self
+    clean: true
+
+trigger:
+  branches:
+    include:
+      - master
+      - trunk
+      - main
+      - feature/*
+  paths:
+    include:
+      - 'interprete_cloudwatch/*'
+
+stages:
+- stage: CI
+  jobs:
+  - job: build
+    displayName: 'Build'
+    pool:
+      name: Build
+      demands:
+        - java
+        - JAVA_HOME_21_X64
+    steps:
+
+    - bash: echo "##vso[task.setvariable variable=GitHub.Repository.Name]${BUILD_REPOSITORY_NAME##*/}"
+      displayName: Set GitHub.Repository.Name
+    - task: SonarQubePrepare@7
+      displayName: 'Prepare analysis on SonarQube'
+      inputs:
+        SonarQube: SonarQube
+        scannerMode: Other
+        extraProperties: |
+          sonar.projectKey=$(GitHub.Repository.Name)_$(componentName)
+          sonar.projectName=$(GitHub.Repository.Name)_$(componentName)
+          sonar.project.version=$(Build.BuildNumber)
+
+    - task: Gradle@4
+      displayName: 'Gradle Build'
+      inputs:
+        workingDirectory: '$(projectPath)'
+        gradleWrapperFile: '$(projectPath)/gradlew'
+        tasks: 'clean build jacocoMergedReport'
+        publishJUnitResults: true
+        testResultsFiles: '**/TEST-*.xml'
+        javaHomeOption: 'JDKVersion'
+        sonarQubeRunAnalysis: true
+        sqGradlePluginVersionChoice: 'build'
+      env:
+        JAVA_HOME: $(JAVA_HOME_21_X64)
+
+    - task: PublishCodeCoverageResults@1
+      displayName: 'Publish code coverage'
+      inputs:
+        summaryFileLocation: '$(System.DefaultWorkingDirectory)/build/reports/jacocoMergedReport/jacocoMergedReport.xml'
+
+    - task: Sonar-buildbreaker@8
+      displayName: 'Break Build on Quality Gate Failure'
+      inputs:
+        SonarQube: SonarQube
+
+    - task: ArtifactoryGenericDownload@3
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/trunk'))
+      inputs:
+        connection: 'Artifactory'
+        specSource: 'taskConfiguration'
+        fileSpec: |
+          {
+            "files": [
+              {
+                "pattern": "maven-bancolombia/io/opentelemetry/javaagent/opentelemetry-javaagent/1.26.0/opentelemetry-javaagent-1.26.0.jar",
+                "target": "$(componentName)/deployment/"
+              }
+            ]
+          }
+        failNoOp: true
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact'
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'],'refs/heads/trunk'))
+      inputs:
+        PathtoPublish: '$(projectPath)/applications/app-service/build/libs/'
+        ArtifactName: '_artifact'
+        publishLocation: 'Container'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Dockerfile'
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'],'refs/heads/trunk'))
+      inputs:
+        PathtoPublish: '$(projectPath)/deployment'
+        ArtifactName: '_artifact'
+        publishLocation: 'Container'
